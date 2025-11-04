@@ -4,6 +4,8 @@ from spotipy.oauth2 import SpotifyOAuth
 import os
 from dotenv import load_dotenv
 
+import json
+
 load_dotenv()
 
 client_id = os.getenv("CLIENT_ID")
@@ -14,14 +16,16 @@ sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id = client_id,
                                                redirect_uri = "http://127.0.0.1:8888",
                                                scope = "user-library-read"))
 
-artist_uri = "spotify:artist:0Y5tJX1MQlPlqiwlOH1tJY"
-
-results = sp.artist_albums(artist_uri, album_type="album")
-albums = results["items"]
+results = sp.current_user_saved_tracks()
+tracks = results["items"]
 
 while results["next"]:
     results = sp.next(results)
-    albums.extend(results["items"])
+    tracks.extend(results["items"])
 
-for album in albums:
-    print(album["name"])
+for index, item in enumerate(tracks):
+    track = item["track"]
+    print(index, track["artists"][0]["name"], " - ", track["name"])
+
+with open("liked_songs.json", "w") as file:
+    json.dump(tracks, file, indent = 2)
